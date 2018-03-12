@@ -1,8 +1,8 @@
 import java.util.*;
 
+import static java.lang.Math.*;
+
 public class Polynomial {
-    //Поля
-    private final int highestDegree;
 
     private final List<Integer> terms = new ArrayList<>();
 
@@ -10,18 +10,16 @@ public class Polynomial {
     public Polynomial(List<Integer> terms) {
         if (terms.isEmpty()) throw new IllegalArgumentException("Wrong list of terms");
         this.terms.addAll(terms);
-        this.highestDegree = terms.size() - 1;
     }
 
     public Polynomial(int highestDegree) {
         if (highestDegree < 0) throw new IllegalArgumentException("Wrong degree");
-        this.highestDegree = highestDegree;
-        for (int i = 0; i <= this.highestDegree; i++) terms.add(0);
+        for (int i = 0; i <= highestDegree; i++) terms.add(0);
     }
 
     //Геттеры
-    public Integer getDegree() {
-        return highestDegree;
+    public int getDegree() {
+        return terms.size() - 1;
     }
 
     public List<Integer> getTerms() {
@@ -32,23 +30,27 @@ public class Polynomial {
     public int value(int x) {
         int result = 0;
         for (int i = 0; i < terms.size(); i++) {
-            result += terms.get(i) * Math.pow(x, i);
+            result += terms.get(i) * pow(x, i);
         }
         return result;
     }
 
     //Сложение
     public Polynomial plus(Polynomial other) {
-        int maxPolynomialDegree = (Math.max(terms.size(), other.terms.size())) - 1;
-        int minPolynomialDegree = (Math.min(terms.size(), other.terms.size())) - 1;
+        int maxPolynomialDegree = (max(getDegree(), other.getDegree()));
+        int minPolynomialDegree = (min(getDegree(), other.getDegree()));
         Polynomial result = new Polynomial(maxPolynomialDegree);
         for (int i = 0; i <= minPolynomialDegree; i++) {
             result.terms.set(i, terms.get(i) + other.terms.get(i));
         }
-        for (int i = minPolynomialDegree + 1; i <= maxPolynomialDegree; i++) {
-            if (terms.size() > other.terms.size()) result.terms.set(i, terms.get(i));
-            else result.terms.set(i, other.terms.get(i));
-        }
+        if (terms.size() > other.terms.size())
+            for (int i = minPolynomialDegree + 1; i <= maxPolynomialDegree; i++) {
+                result.terms.set(i, terms.get(i));
+            }
+        else
+            for (int i = minPolynomialDegree + 1; i <= maxPolynomialDegree; i++) {
+                result.terms.set(i, other.terms.get(i));
+            }
         while (result.terms.get(maxPolynomialDegree).equals(0)) {
             result.terms.remove(maxPolynomialDegree);
             maxPolynomialDegree--;
@@ -59,7 +61,7 @@ public class Polynomial {
 
     //Вычитание
     public Polynomial minus(Polynomial other) {
-        Polynomial negativeOther = new Polynomial(other.highestDegree);
+        Polynomial negativeOther = new Polynomial(other.getDegree());
         for (int i = 0; i < other.terms.size(); i++) {
             negativeOther.terms.set(i, -other.terms.get(i));
         }
@@ -68,9 +70,9 @@ public class Polynomial {
 
     //Умножение
     public Polynomial multiply(Polynomial other) {
-        Polynomial result = new Polynomial(highestDegree + other.highestDegree);
-        for (int i = 0; i <= highestDegree; i++) {
-            for (int k = 0; k <= other.highestDegree; k++) {
+        Polynomial result = new Polynomial(getDegree() + other.getDegree());
+        for (int i = 0; i <= getDegree(); i++) {
+            for (int k = 0; k <= other.getDegree(); k++) {
                 result.terms.set(i + k, result.terms.get(i + k) + terms.get(i) * other.terms.get(k));
             }
         }
@@ -79,40 +81,33 @@ public class Polynomial {
 
     public Polynomial subPolynomial(int subHighestDegree) {
         Polynomial result = new Polynomial(terms);
-        while (result.terms.size() > subHighestDegree + 1) {
-            result.terms.remove(result.terms.size() - 1);
+        while (result.getDegree() > subHighestDegree) {
+            result.terms.remove(result.getDegree());
         }
         return new Polynomial(result.terms);
     }
 
     //Деление
-    public Polynomial divide(Polynomial other) {
-        if (highestDegree < other.highestDegree) throw
-                new IllegalArgumentException("The degree of a divisible can not be less than the degree of a divisor");
-        Polynomial result = new Polynomial(highestDegree - other.highestDegree);
+    private Polynomial[] divide(Polynomial other) {
+        Polynomial result = new Polynomial(getDegree() - other.getDegree());
         Polynomial remainder = new Polynomial(terms);
-        for (int i = result.highestDegree; i >= 0; i--) {
-            if (remainder.terms.get(remainder.highestDegree) % other.terms.get(other.highestDegree) != 0)
+        for (int i = result.getDegree(); i >= 0; i--) {
+            if (remainder.terms.get(remainder.getDegree()) % other.terms.get(other.getDegree()) != 0)
                 throw new IllegalArgumentException("The result can only have integer coefficients");
-            result.terms.set(i, remainder.terms.get(remainder.highestDegree) / other.terms.get(other.highestDegree));
+            result.terms.set(i, remainder.terms.get(remainder.getDegree()) / other.terms.get(other.getDegree()));
             remainder = remainder.minus(other.multiply(result.subPolynomial(i)));
         }
-        return result;
+        return new Polynomial[]{result, remainder};
     }
 
-    //Остаток
+    //Результат деления
+    public Polynomial resultOfTheDivision(Polynomial other) {
+        return divide(other)[0];
+    }
+
+    //Остаток от деления
     public Polynomial remainderOfTheDivision(Polynomial other) {
-        if (highestDegree < other.highestDegree) throw
-                new IllegalArgumentException("The degree of a divisible can not be less than the degree of a divisor");
-        Polynomial result = new Polynomial(highestDegree - other.highestDegree);
-        Polynomial remainder = new Polynomial(terms);
-        for (int i = result.highestDegree; i >= 0; i--) {
-            if (remainder.terms.get(remainder.highestDegree) % other.terms.get(other.highestDegree) != 0)
-                throw new IllegalArgumentException("The result can only have integer coefficients");
-            result.terms.set(i, remainder.terms.get(remainder.highestDegree) / other.terms.get(other.highestDegree));
-            remainder = remainder.minus(other.multiply(result.subPolynomial(i)));
-        }
-        return remainder;
+        return divide(other)[1];
     }
 
     @Override
@@ -120,54 +115,33 @@ public class Polynomial {
         if (this == obj) return true;
         if (obj instanceof Polynomial) {
             Polynomial other = (Polynomial) obj;
-            return highestDegree ==
-                    other.highestDegree && other.terms.containsAll(terms) && terms.containsAll(other.terms);
+            return getDegree() == other.getDegree() && other.terms.containsAll(terms) && terms.containsAll(other.terms);
         }
         return false;
     }
 
     @Override
     public String toString() {
+        Map<Character, Character> superscriptNumbers = new HashMap<>();
+        superscriptNumbers.put('0', '\u2070');
+        superscriptNumbers.put('1', '\u00b9');
+        superscriptNumbers.put('2', '\u00b2');
+        superscriptNumbers.put('3', '\u00b3');
+        superscriptNumbers.put('4', '\u2074');
+        superscriptNumbers.put('5', '\u2075');
+        superscriptNumbers.put('6', '\u2076');
+        superscriptNumbers.put('7', '\u2077');
+        superscriptNumbers.put('8', '\u2078');
+        superscriptNumbers.put('9', '\u2079');
         StringBuilder result = new StringBuilder();
-        for (int i = terms.size() - 1; i >= 0; i--) {
+        for (int i = getDegree(); i >= 0; i--) {
             if (terms.get(i).equals(0) && (i != 0 || result.length() != 0)) continue;
             StringBuilder termDegree = new StringBuilder();
             for (Character element : String.valueOf(i).toCharArray()) {
-                switch (element) {
-                    case '0':
-                        termDegree.append("\u2070");
-                        break;
-                    case '1':
-                        termDegree.append("\u00b9");
-                        break;
-                    case '2':
-                        termDegree.append("\u00b2");
-                        break;
-                    case '3':
-                        termDegree.append("\u00b3");
-                        break;
-                    case '4':
-                        termDegree.append("\u2074");
-                        break;
-                    case '5':
-                        termDegree.append("\u2075");
-                        break;
-                    case '6':
-                        termDegree.append("\u2076");
-                        break;
-                    case '7':
-                        termDegree.append("\u2077");
-                        break;
-                    case '8':
-                        termDegree.append("\u2078");
-                        break;
-                    case '9':
-                        termDegree.append("\u2079");
-                        break;
-                }
+                termDegree.append(superscriptNumbers.get(element));
             }
             if (result.length() > 0 && terms.get(i) > 0) result.append("+");
-            if (Math.abs(terms.get(i)) != 1 || i == 0) result.append(terms.get(i));
+            if (abs(terms.get(i)) != 1 || i == 0) result.append(terms.get(i));
             else if (terms.get(i).equals(-1)) result.append("-");
             if (i != 0) result.append("x");
             if (i > 1) result.append(termDegree);
@@ -177,7 +151,7 @@ public class Polynomial {
 
     @Override
     public int hashCode() {
-        int result = highestDegree;
+        int result = getDegree();
         result = result * 17 + terms.hashCode();
         return result;
     }
