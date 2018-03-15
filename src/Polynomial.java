@@ -3,30 +3,52 @@ import java.util.*;
 import static java.lang.Math.*;
 
 public class Polynomial {
-
+    /** Список членов многочлена. */
     private final List<Integer> terms = new ArrayList<>();
 
-    //Конструкторы
+    /**
+     * Создаёт полином из заданного списка одночленов.
+     * @param terms список членов полинома
+     * @see Polynomial
+     * @throws IllegalArgumentException - если список одночленов пуст
+     */
     public Polynomial(List<Integer> terms) {
         if (terms.isEmpty()) throw new IllegalArgumentException("Wrong list of terms");
         this.terms.addAll(terms);
     }
 
+    /**
+     * Создаёт полином заданной степени с нулевыми коэффициентами.
+     * @param highestDegree степень полинома
+     * @see  Polynomial
+     * @throws IllegalArgumentException если задана отрицательная степень
+     */
     public Polynomial(int highestDegree) {
         if (highestDegree < 0) throw new IllegalArgumentException("Wrong degree");
         for (int i = 0; i <= highestDegree; i++) terms.add(0);
     }
 
-    //Геттеры
+    /**
+     * Возвращает степень данного полинома.
+     * @return степень данного полинома
+     */
     public int getDegree() {
         return terms.size() - 1;
     }
 
+    /**
+     * Возвращает список членов данного полинома.
+     * @return список членов данного полинома
+     */
     public List<Integer> getTerms() {
         return terms;
     }
 
-    //Вычисление значения при данном х
+    /**
+     * Возвращает значение полинома при заданном целом значении переменной.
+     * @param x заданное значение переменной
+     * @return значение полинома при заданном целом значении переменной
+     */
     public int value(int x) {
         int result = 0;
         for (int i = 0; i < terms.size(); i++) {
@@ -35,7 +57,11 @@ public class Polynomial {
         return result;
     }
 
-    //Сложение
+    /**
+     * Возвращает полином, равный сумме этого и заданного полиномов.
+     * @param other прибавляемый полином
+     * @return полином, равный сумме этого и заданного полиномов
+     */
     public Polynomial plus(Polynomial other) {
         int maxPolynomialDegree = (max(getDegree(), other.getDegree()));
         int minPolynomialDegree = (min(getDegree(), other.getDegree()));
@@ -59,7 +85,11 @@ public class Polynomial {
         return new Polynomial(result.terms);
     }
 
-    //Вычитание
+    /**
+     * Возвращает полином, равный разности этого и заданного полиномов.
+     * @param other вычитаемый многочлен
+     * @return полином, равный разности этого и заданного полиномов
+     */
     public Polynomial minus(Polynomial other) {
         Polynomial negativeOther = new Polynomial(other.getDegree());
         for (int i = 0; i < other.terms.size(); i++) {
@@ -68,7 +98,11 @@ public class Polynomial {
         return this.plus(negativeOther);
     }
 
-    //Умножение
+    /**
+     * Возвращает полином, равный произведению этого и заданного полиномов.
+     * @param other полином на который умножается этот полином
+     * @return полином, равный произведению этого и заданного полиномов
+     */
     public Polynomial multiply(Polynomial other) {
         Polynomial result = new Polynomial(getDegree() + other.getDegree());
         for (int i = 0; i <= getDegree(); i++) {
@@ -79,6 +113,11 @@ public class Polynomial {
         return result;
     }
 
+    /**
+     * Возвращает полином, который получен из данного путём удаления всех членов со степенью выше заданной.
+     * @param subHighestDegree степень получаемого полинома
+     * @return полином, который получен из данного путём удаления всех членов со степенью выше заданной
+     */
     public Polynomial subPolynomial(int subHighestDegree) {
         Polynomial result = new Polynomial(terms);
         while (result.getDegree() > subHighestDegree) {
@@ -87,7 +126,11 @@ public class Polynomial {
         return new Polynomial(result.terms);
     }
 
-    //Деление
+    /**
+     * Возвращает массив полиномов, содержащий результат и остаток от деления данного полинома на заданный.
+     * @param other полином - делитель
+     * @return массив полиномов, содержащий результат и остаток от деления данного полинома на заданный
+     */
     private Polynomial[] divide(Polynomial other) {
         Polynomial result = new Polynomial(getDegree() - other.getDegree());
         Polynomial remainder = new Polynomial(terms);
@@ -100,16 +143,30 @@ public class Polynomial {
         return new Polynomial[]{result, remainder};
     }
 
-    //Результат деления
+    /**
+     * Возвращает частное от деления этого полинома на заданный.
+     * @param other полином - делитель
+     * @return частное от деления этого полинома на заданный
+     */
     public Polynomial resultOfTheDivision(Polynomial other) {
         return divide(other)[0];
     }
 
-    //Остаток от деления
+    /**
+     * Возвращает остаток от деления этого полинома на заданный.
+     * @param other полином - делитель
+     * @return остаток от деления этого полинома на заданный
+     */
     public Polynomial remainderOfTheDivision(Polynomial other) {
         return divide(other)[1];
     }
 
+    /**
+     * Возвращает true если заданный объект равен этому полиному.
+     * {@inheritDoc}
+     * @param obj объект, который будет сравниваться с этим полиномом
+     * @return true если заданный объект равен этому полиному
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -120,6 +177,11 @@ public class Polynomial {
         return false;
     }
 
+    /**
+     * Возвращает строковое представление этого полинома.
+     * {@inheritDoc}
+     * @return строковое представление этого полинома
+     */
     @Override
     public String toString() {
         Map<Character, Character> superscriptNumbers = new HashMap<>();
@@ -149,6 +211,11 @@ public class Polynomial {
         return result.toString();
     }
 
+    /**
+     * Возвращает хэш-код данного полинома.
+     * {@inheritDoc}
+     * хэш-код данного полинома
+     */
     @Override
     public int hashCode() {
         int result = getDegree();
